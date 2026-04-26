@@ -305,7 +305,13 @@ async function uploadToKV(streamId, key, value) {
 
 // Download data from 0G-KV
 async function downloadFromKV(streamId, key) {
-  const kvClient = new KvClient("http://3.101.147.150:6789");
+  // Dynamically discover storage nodes instead of hardcoding endpoints
+  const [nodes, err] = await indexer.selectNodes(1);
+  if (err !== null) {
+    throw new Error(`Error selecting nodes: ${err}`);
+  }
+
+  const kvClient = new KvClient(nodes[0].url);
   const keyBytes = Uint8Array.from(Buffer.from(key, 'utf-8'));
   const value = await kvClient.getValue(streamId, ethers.encodeBase64(keyBytes));
   return value;
